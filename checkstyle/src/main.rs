@@ -15,21 +15,19 @@ fn check_matching(file: &str, regex: &str) -> Option<bool> {
     Some(re.is_match(file))
 }
 
-fn all_files(dir: &str) -> Vec<&str> {
-    let mut files: Vec<&str> = Vec::new();
-    for file in dir {
-        if let Ok(file) = file {
-            if file.file_type().unwrap().is_file() {
-                files.push(file.path());
-            } else if file.file_type().unwrap().is_dir() {
-                // Extract all files, even from directories.
-                // Doesn't follow symlinks.
-                let rdir = file.path().read_dir().unwrap();
-                files.append(&mut files_from_dir(rdir));
-            }
-        }
-    }
-    files
+fn all_files(_dir: &str) -> Vec<&str> {
+    return vec!["Syncer.kt"];
+    // let mut files: Vec<&str> = Vec::new();
+    // for file in dir {
+    //     if let Ok(file) = file {
+    //         if file.file_type().unwrap().is_file() {
+    //             files.push(file.path());
+    //         } else if file.file_type().unwrap().is_dir() {
+    //             let rdir = file.path().read_dir().unwrap();
+    //         }
+    //     }
+    // }
+    // files
 }
 
 fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>) {
@@ -56,8 +54,9 @@ fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>)
 }
 
 fn main() {
-    print!("Type regex file path");
-    let regex_file_path: String = read!();
+    print!("Type regex file path"); // checkstyle-file-agpl-header.txt
+    let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
+    // let regex_file_path: String = read!();
     print!("Type target path");
     let target_path: String = read!();
     let (matching_files, nonmatching_files) = solve(&regex_file_path, &target_path);
@@ -66,5 +65,34 @@ fn main() {
     }
     for file in nonmatching_files {
         println!("{file} is a nonmatching file");
+    }
+}
+
+
+// fn is_option_true(option_value: Option<bool>) -> bool {
+//     match option_value {
+//         Some(true) => true,
+//         _ => false,
+//     }
+// }
+
+#[cfg(test)]
+mod tests {
+    use crate::check_matching;
+    use crate::get_file;
+    // use crate::is_option_true;
+
+    fn is_option_true(option_value: Option<bool>) -> bool {
+        match option_value {
+            Some(true) => true,
+            _ => false,
+        }
+    }
+    #[test]
+    fn test_checker() {
+        let file = get_file("checkstyle-file-agpl-header.txt");
+        let regex = get_file("Syncer.kt");
+        let result = check_matching(&file, &regex);
+        assert!(is_option_true(result));
     }
 }
