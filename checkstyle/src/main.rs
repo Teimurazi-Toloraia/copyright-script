@@ -7,7 +7,7 @@ use text_io::read;
 // use std::io::prelude::*;
 
 fn get_file(filename: &str) -> String {
-    fs::read_to_string(filename).expect("Failed to read schema file")
+    fs::read_to_string(filename).expect("Failed to read file")
 }
 
 fn check_matching(file: &str, regex: &str) -> Option<bool> {
@@ -90,8 +90,10 @@ mod tests {
     }
     #[test]
     fn test_checker() {
-        let file = get_file("checkstyle-file-agpl-header.txt");
-        let regex = get_file("Syncer.kt");
+        let regex = get_file("checkstyle-file-agpl-header.txt");
+        let file = get_file("Syncer.kt");
+        println!("regex is {regex}");
+        println!("file is {file}");
         let result = check_matching(&file, &regex);
         assert!(is_option_true(result));
     }
