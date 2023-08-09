@@ -68,19 +68,10 @@ fn main() {
     }
 }
 
-
-// fn is_option_true(option_value: Option<bool>) -> bool {
-//     match option_value {
-//         Some(true) => true,
-//         _ => false,
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use crate::check_matching;
     use crate::get_file;
-    // use crate::is_option_true;
 
     fn is_option_true(option_value: Option<bool>) -> bool {
         match option_value {
