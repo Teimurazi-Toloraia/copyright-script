@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::fs::{self};
+use std::{fs::{self}, io::BufRead};
 use text_io::read;
 // use std::path::Path;
 // use std::path::PathBuf;
@@ -10,9 +10,29 @@ fn get_file(filename: &str) -> String {
     fs::read_to_string(filename).expect("Failed to read file")
 }
 
+fn split_into_lines(regex: &str) -> Vec<&str> {
+    regex.lines().collect()
+}
+
+fn check_matching_regex_line(file: &str, regex_line: &str) -> Option<bool> {
+    let re = Regex::new(regex_line).ok()?; // Use .ok() to convert Result to Option
+    let file_lines = split_into_lines(file);
+    for file_line in file_lines {
+        if re.is_match(file_line) {
+            return Some(true);
+        }
+    }
+    Some(false)
+}
+
 fn check_matching(file: &str, regex: &str) -> Option<bool> {
-    let re = Regex::new(regex).ok()?; // Use .ok() to convert Result to Option
-    Some(re.is_match(file))
+    let lines: Vec<&str> = split_into_lines(regex);
+    for regex_line in lines {
+        if check_matching_regex_line(file, regex_line) == Some(false) {
+            return Some(false);
+        }
+    }
+    Some(true)
 }
 
 fn all_files(_dir: &str) -> Vec<&str> {
