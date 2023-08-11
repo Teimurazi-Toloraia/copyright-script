@@ -28,23 +28,23 @@ fn read_file_content(file_path: &Path) -> String {
     fs::read_to_string(file_path).expect("Failed to read file")
 }
 
-fn check_matching_regex_line(file: &str, re: Regex) -> bool {
-    for file_line in file.lines() {
-        if re.is_match(file_line) {
-            return true;
-        }
-    }
-    false
-}
-
 fn check_matching(file: &str, regex: &str) -> Option<bool> {
-    for regex_line in regex.lines() {
+    let file_lines: Vec<&str> = file.lines().collect();
+    let regex_lines: Vec<&str> = regex.lines().collect();
+    let mut file_id = 0;
+    let mut regex_id = 0;
+    while file_id < file_lines.len() && regex_id < regex_lines.len() {
+        let regex_line = regex_lines[regex_id];
+        let file_line = file_lines[file_id];
         let re = Regex::new(regex_line).ok()?;
-        if !check_matching_regex_line(file, re) {
-            return Some(false);
+        if re.is_match(file_line) {
+            file_id += 1;
+            regex_id += 1;
+        } else {
+            file_id += 1;
         }
     }
-    Some(true)
+    Some(regex_id == regex_lines.len())
 }
 
 fn list_files_in_folder(folder_path: &Path) -> Result<Vec<String>, std::io::Error> {
@@ -99,8 +99,6 @@ mod tests {
     fn test_checker() {
         let regex = read_file_content("checkstyle-file-agpl-header.txt".as_ref());
         let file = read_file_content("Syncer.kt".as_ref());
-        println!("regex is {regex}");
-        println!("file is {file}");
         let result = check_matching(&file, &regex);
         assert!(is_option_true(result));
     }
