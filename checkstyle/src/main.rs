@@ -1,22 +1,15 @@
 use regex::Regex;
 use std::fs::{self};
-// use std::{fs::{self}, io::BufRead};
-use text_io::read;
-// use std::path::Path;
-// use std::path::PathBuf;
-// use std::fs::File;
-// use std::io::prelude::*;
 
 fn get_file(filename: &str) -> String {
     fs::read_to_string(filename).expect("Failed to read file")
 }
 
-fn split_into_lines(regex: &str) -> Vec<&str> {
-    regex.lines().collect()
+fn split_into_lines(s: &str) -> Vec<&str> {
+    s.lines().collect()
 }
 
-fn check_matching_regex_line(file: &str, regex_line: &str) -> Option<bool> {
-    let re = Regex::new(regex_line).ok()?; // Use .ok() to convert Result to Option
+fn check_matching_regex_line(file: &str, re: Regex) -> Option<bool> {
     let file_lines = split_into_lines(file);
     for file_line in file_lines {
         if re.is_match(file_line) {
@@ -29,7 +22,8 @@ fn check_matching_regex_line(file: &str, regex_line: &str) -> Option<bool> {
 fn check_matching(file: &str, regex: &str) -> Option<bool> {
     let lines: Vec<&str> = split_into_lines(regex);
     for regex_line in lines {
-        if check_matching_regex_line(file, regex_line) == Some(false) {
+        let re = Regex::new(regex_line).ok()?;
+        if check_matching_regex_line(file, re) == Some(false) {
             return Some(false);
         }
     }
@@ -90,16 +84,7 @@ fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>)
 }
 
 fn main() {
-    // let folder_path = ".";
-    // let files = all_files(folder_path);
-    // for file in files {
-    //     println!("{}", file);
-    // }
-    // println!("Type regex file path");
-    // let regex_file_path: String = read!();
     let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
-    // println!("Type target path");
-    // let target_path: String = read!();
     let target_path: String = ".".to_string();
     let (matching_files, nonmatching_files) = solve(&regex_file_path, &target_path);
     for file in matching_files {
