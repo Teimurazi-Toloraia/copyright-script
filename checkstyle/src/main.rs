@@ -36,14 +36,13 @@ fn check_matching(file: &str, regex: &str) -> Option<bool> {
     Some(true)
 }
 
-
 fn list_files_in_folder(folder_path: &str) -> Result<Vec<String>, std::io::Error> {
     let mut file_paths = Vec::new();
 
     for entry in fs::read_dir(folder_path)? {
         let entry = entry?;
         let path = entry.path();
-        
+
         if path.is_file() {
             if let Some(file_name) = path.file_name() {
                 if let Some(file_name_str) = file_name.to_str() {
@@ -56,8 +55,7 @@ fn list_files_in_folder(folder_path: &str) -> Result<Vec<String>, std::io::Error
     Ok(file_paths)
 }
 
-fn all_files(folder_path: &str) -> Vec<String> 
-{
+fn all_files(folder_path: &str) -> Vec<String> {
     match list_files_in_folder(folder_path) {
         Ok(file_paths) => {
             return file_paths;
@@ -92,11 +90,17 @@ fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>)
 }
 
 fn main() {
-    print!("Type regex file path");
-    let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
+    // let folder_path = ".";
+    // let files = all_files(folder_path);
+    // for file in files {
+    //     println!("{}", file);
+    // }
+    // println!("Type regex file path");
     // let regex_file_path: String = read!();
-    print!("Type target path");
-    let target_path: String = read!();
+    let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
+    // println!("Type target path");
+    // let target_path: String = read!();
+    let target_path: String = ".".to_string();
     let (matching_files, nonmatching_files) = solve(&regex_file_path, &target_path);
     for file in matching_files {
         println!("{file} is a matching file");
