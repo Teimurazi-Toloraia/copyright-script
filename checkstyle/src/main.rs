@@ -1,7 +1,25 @@
 use regex::Regex;
 use std::fs;
+use std::process;
 
-fn read_file_contents(file_path: &str) -> String {
+fn main() -> Result<(), std::io::Error> {
+    let regex_file_path = String::from("checkstyle-file-agpl-header.txt");
+    let target_path = ".".to_string();
+    let (matching_files, nonmatching_files) =
+        separate_regex_matching_files(&regex_file_path, &target_path);
+    for file in &matching_files {
+        println!("{file} is matching regex in {regex_file_path}");
+    }
+    for file in &nonmatching_files {
+        println!("{file} is NOT matching regex in {regex_file_path}");
+    }
+    if !nonmatching_files.is_empty() {
+        process::exit(1);
+    }
+    Ok(())
+}
+
+fn read_file_content(file_path: &str) -> String {
     fs::read_to_string(file_path).expect("Failed to read file")
 }
 
@@ -47,58 +65,35 @@ fn all_files(folder_path: &str) -> Vec<String> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
-fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>) {
+fn separate_regex_matching_files(
+    regex_file_path: &str,
+    target_path: &str,
+) -> (Vec<String>, Vec<String>) {
     let target_file_paths = all_files(target_path);
-    let regex = read_file_contents(regex_file_path);
-    let mut matching_files: Vec<String> = Vec::new();
-    let mut nonmatching_files: Vec<String> = Vec::new();
+    let regex = read_file_content(regex_file_path);
 
-    for target_file_name in target_file_paths {
-        let target_file = read_file_contents(&target_file_name);
-        let is_match_option = check_matching(&target_file, &regex);
-        let is_match: bool = match is_match_option {
-            Some(inner_value) => inner_value,
-            None => false,
-        };
-        if is_match {
-            matching_files.push(target_file_name.to_string());
-        } else {
-            nonmatching_files.push(target_file_name.to_string());
-        }
-    }
+    let (matching_files, nonmatching_files): (Vec<String>, Vec<String>) =
+        target_file_paths.into_iter().partition(|target_file_name| {
+            let target_file = read_file_content(&target_file_name);
+            let is_match_option = check_matching(&target_file, &regex);
+            is_match_option.unwrap_or(false)
+        });
 
     (matching_files, nonmatching_files)
-}
-
-use std::process;
-
-fn main() {
-    let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
-    let target_path: String = ".".to_string();
-    let (matching_files, nonmatching_files) = solve(&regex_file_path, &target_path);
-    for file in &matching_files {
-        println!("{file} is matching regex in {regex_file_path}");
-    }
-    for file in &nonmatching_files {
-        println!("{file} is NOT matching regex in {regex_file_path}");
-    }
-    if !nonmatching_files.is_empty() {
-        process::exit(1);
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::check_matching;
-    use crate::read_file_contents;
+    use crate::read_file_content;
 
     fn is_option_true(option_value: Option<bool>) -> bool {
         option_value.unwrap_or(false)
     }
     #[test]
     fn test_checker() {
-        let regex = read_file_contents("checkstyle-file-agpl-header.txt");
-        let file = read_file_contents("Syncer.kt");
+        let regex = read_file_content("checkstyle-file-agpl-header.txt");
+        let file = read_file_content("Syncer.kt");
         println!("regex is {regex}");
         println!("file is {file}");
         let result = check_matching(&file, &regex);
