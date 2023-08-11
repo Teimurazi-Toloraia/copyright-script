@@ -83,15 +83,21 @@ fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>)
     (matching_files, nonmatching_files)
 }
 
+use std::process;
+
 fn main() {
     let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
     let target_path: String = ".".to_string();
     let (matching_files, nonmatching_files) = solve(&regex_file_path, &target_path);
-    for file in matching_files {
+    for file in &matching_files {
         println!("{file} is a matching file");
     }
-    for file in nonmatching_files {
+    for file in &nonmatching_files {
         println!("{file} is a nonmatching file");
+    }
+    // Check if there are non-matching files and return the appropriate exit code
+    if !nonmatching_files.is_empty() {
+        process::exit(1); // Exit with code 1 for non-matching files
     }
 }
 
