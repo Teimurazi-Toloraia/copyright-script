@@ -36,19 +36,36 @@ fn check_matching(file: &str, regex: &str) -> Option<bool> {
     Some(true)
 }
 
-fn all_files(_dir: &str) -> Vec<&str> {
-    return vec!["Syncer.kt"];
-    // let mut files: Vec<&str> = Vec::new();
-    // for file in dir {
-    //     if let Ok(file) = file {
-    //         if file.file_type().unwrap().is_file() {
-    //             files.push(file.path());
-    //         } else if file.file_type().unwrap().is_dir() {
-    //             let rdir = file.path().read_dir().unwrap();
-    //         }
-    //     }
-    // }
-    // files
+
+fn list_files_in_folder(folder_path: &str) -> Result<Vec<String>, std::io::Error> {
+    let mut file_paths = Vec::new();
+
+    for entry in fs::read_dir(folder_path)? {
+        let entry = entry?;
+        let path = entry.path();
+        
+        if path.is_file() {
+            if let Some(file_name) = path.file_name() {
+                if let Some(file_name_str) = file_name.to_str() {
+                    file_paths.push(file_name_str.to_string());
+                }
+            }
+        }
+    }
+
+    Ok(file_paths)
+}
+
+fn all_files(folder_path: &str) -> Vec<String> 
+{
+    match list_files_in_folder(folder_path) {
+        Ok(file_paths) => {
+            return file_paths;
+        }
+        _ => {
+            return Vec::new();
+        }
+    }
 }
 
 fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>) {
