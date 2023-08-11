@@ -1,5 +1,6 @@
 use regex::Regex;
-use std::{fs::{self}, io::BufRead};
+use std::fs::{self};
+// use std::{fs::{self}, io::BufRead};
 use text_io::read;
 // use std::path::Path;
 // use std::path::PathBuf;
@@ -74,7 +75,7 @@ fn solve(regex_file_path: &str, target_path: &str) -> (Vec<String>, Vec<String>)
 }
 
 fn main() {
-    print!("Type regex file path"); // checkstyle-file-agpl-header.txt
+    print!("Type regex file path");
     let regex_file_path: String = String::from("checkstyle-file-agpl-header.txt");
     // let regex_file_path: String = read!();
     print!("Type target path");
