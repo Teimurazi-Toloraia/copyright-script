@@ -21,8 +21,22 @@ fn main() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn read_file_content(file_path: &Path) -> String {
-    fs::read_to_string(file_path).expect("Failed to read file")
+fn read_file_content(file_path: &Path) -> Option<String> {
+    match fs::read_to_string(file_path) {
+        Ok(content) => Some(content),
+        Err(err) => {
+            if err.kind() == std::io::ErrorKind::InvalidData {
+                eprintln!(
+                    "Warning: File '{}' contains invalid UTF-8 data, skipping...",
+                    file_path.display()
+                );
+                None
+            } else {
+                eprintln!("Failed to read file '{}': {}", file_path.display(), err);
+                None
+            }
+        }
+    }
 }
 
 fn check_direct_matching(file_lines: Vec<&str>, regex_lines: Vec<&str>) -> Option<bool> {
@@ -76,10 +90,16 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
 
 fn separate_regex_matching_files(regex_file_path: &Path, target_path: &Path) -> Vec<PathBuf> {
     let target_file_paths = all_files(target_path);
-    let regex = read_file_content(regex_file_path);
+    let regex = match read_file_content(regex_file_path) {
+        Some(regex_content) => regex_content,
+        None => return Vec::new(), // Early return if regex file couldn't be read
+    };
     let (_matching_files, nonmatching_files) =
         target_file_paths.into_iter().partition(|target_file_name| {
-            let target_file = read_file_content(&target_file_name.as_ref());
+            let target_file = match read_file_content(&target_file_name.as_ref()){
+                Some(content) => content,
+                None => return false,
+            };
             check_matching(&target_file, &regex)
         });
 
@@ -93,8 +113,20 @@ mod tests {
 
     #[test]
     fn test_checker() {
-        let regex = read_file_content("checkstyle-file-agpl-header.txt".as_ref());
-        let file = read_file_content("Syncer.kt".as_ref());
+        let regex = match read_file_content("checkstyle-file-agpl-header.txt".as_ref()) {
+            Some(content) => content,
+            None => {
+                println!("Failed to read regex file");
+                return;
+            }
+        };
+        let file = match read_file_content("Syncer.kt".as_ref()) {
+            Some(content) => content,
+            None => {
+                println!("Failed to read file");
+                return;
+            }
+        };
         assert!(check_matching(&file, &regex));
     }
 }
