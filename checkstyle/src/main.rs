@@ -96,7 +96,7 @@ fn separate_regex_matching_files(regex_file_path: &Path, target_path: &Path) -> 
     };
     let (_matching_files, nonmatching_files) =
         target_file_paths.into_iter().partition(|target_file_name| {
-            let target_file = match read_file_content(&target_file_name.as_ref()){
+            let target_file = match read_file_content(&target_file_name.as_ref()) {
                 Some(content) => content,
                 None => return false,
             };
