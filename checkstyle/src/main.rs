@@ -40,7 +40,7 @@ fn read_file_content(file_path: &Path) -> Option<String> {
 }
 
 fn check_matching(file: &str, regex: &str) -> bool {
-    let re = Regex::new(regex).unwrap();
+    let re = Regex::new(&format!("(?m){}", regex)).unwrap();
     re.is_match(file)
 }
 
