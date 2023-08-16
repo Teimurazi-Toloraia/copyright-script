@@ -72,6 +72,10 @@ fn list_files_in_folder(folder_path: &Path) -> Result<Vec<PathBuf>, std::io::Err
         let entry = entry?;
         let path = entry.path();
 
+        if path.is_symlink() {
+            continue;
+        }
+
         if path.is_file() {
             file_paths.push(path.clone());
         } else if path.is_dir() {
@@ -94,14 +98,16 @@ fn separate_regex_matching_files(regex_file_path: &Path, target_path: &Path) -> 
         Some(regex_content) => regex_content,
         None => return Vec::new(), // Early return if regex file couldn't be read
     };
-    let (_matching_files, nonmatching_files) =
-        target_file_paths.into_iter().partition(|target_file_name| {
-            let target_file = match read_file_content(&target_file_name.as_ref()) {
-                Some(content) => content,
-                None => return false,
-            };
-            check_matching(&target_file, &regex)
-        });
+    let nonmatching_files = target_file_paths
+        .into_iter()
+        .filter(|target_file_name| {
+            if let Some(content) = read_file_content(&target_file_name.as_ref()) {
+                !check_matching(&content, &regex)
+            } else {
+                false
+            }
+        })
+        .collect();
 
     nonmatching_files
 }
