@@ -39,30 +39,9 @@ fn read_file_content(file_path: &Path) -> Option<String> {
     }
 }
 
-fn check_direct_matching(file_lines: Vec<&str>, regex_lines: Vec<&str>) -> Option<bool> {
-    if file_lines.len() < regex_lines.len() {
-        return Some(false);
-    }
-    let together = file_lines.iter().zip(regex_lines.iter());
-    for (file_line, regex_line) in together {
-        let re = Regex::new(regex_line).ok()?;
-        if !re.is_match(file_line) {
-            return Some(false);
-        }
-    }
-    Some(true)
-}
-
 fn check_matching(file: &str, regex: &str) -> bool {
-    let file_lines: Vec<&str> = file.lines().collect();
-    let regex_lines: Vec<&str> = regex.lines().collect();
-    for i in 0..file_lines.len() {
-        let suffix = &file_lines[i..];
-        if check_direct_matching(suffix.to_vec(), regex_lines.to_vec()).unwrap_or(false) {
-            return true;
-        }
-    }
-    return false;
+    let re = Regex::new(regex).unwrap();
+    re.is_match(file)
 }
 
 fn list_files_in_folder(folder_path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
