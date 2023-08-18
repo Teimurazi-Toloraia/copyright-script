@@ -11,13 +11,13 @@ struct Args {
     target_path: String,
 
     #[arg(short, long)]
-    regex_path: String,
+    regex_file_path: String,
 }
 
 fn main() -> Result<(), std::io::Error> {
     let args = Args::parse();
 
-    let regex_file_path = PathBuf::from(&args.regex_path);
+    let regex_file_path = PathBuf::from(&args.regex_file_path);
     let target_path = PathBuf::from(&args.target_path);
 
     let nonmatching_files = separate_regex_matching_files(&regex_file_path, &target_path);
