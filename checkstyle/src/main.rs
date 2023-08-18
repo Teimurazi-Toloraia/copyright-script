@@ -1,13 +1,27 @@
 use regex::Regex;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    target_path: String,
+
+    #[arg(short, long)]
+    regex_path: String,
+}
 
 fn main() -> Result<(), std::io::Error> {
-    let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
-    let target_path = PathBuf::from(".".to_string());
+    let args = Args::parse();
+
+    let regex_file_path = PathBuf::from(&args.regex_path);
+    let target_path = PathBuf::from(&args.target_path);
+
     let nonmatching_files = separate_regex_matching_files(&regex_file_path, &target_path);
+
     for file in &nonmatching_files {
         println!(
             "File {} does not match regex: {}",
@@ -15,9 +29,11 @@ fn main() -> Result<(), std::io::Error> {
             regex_file_path.display()
         );
     }
+
     if !nonmatching_files.is_empty() {
         process::exit(1);
     }
+
     Ok(())
 }
 
