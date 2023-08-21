@@ -3,6 +3,7 @@ use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
+use glob::glob;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -12,6 +13,12 @@ struct Args {
 
     #[arg(short, long)]
     regex_file_path: String,
+
+    #[arg(short, long)]
+    include: Option<String>,
+
+    #[arg(short, long)]
+    exclude: Option<String>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -20,7 +27,7 @@ fn main() -> Result<(), std::io::Error> {
     let regex_file_path = PathBuf::from(&args.regex_file_path);
     let target_path = PathBuf::from(&args.target_path);
 
-    let nonmatching_files = separate_regex_matching_files(&regex_file_path, &target_path);
+    let nonmatching_files = separate_regex_matching_files(&regex_file_path, &target_path, args.include, args.exclude);
 
     for file in &nonmatching_files {
         println!(
@@ -87,7 +94,7 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
-fn separate_regex_matching_files(regex_file_path: &Path, target_path: &Path) -> Vec<PathBuf> {
+fn separate_regex_matching_files(regex_file_path: &Path, target_path: &Path, include_pattern: Option<String>, exclude_pattern: Option<String>) -> Vec<PathBuf> {
     let target_file_paths = all_files(target_path);
     let regex = match read_file_content(regex_file_path) {
         Some(regex_content) => regex_content,
