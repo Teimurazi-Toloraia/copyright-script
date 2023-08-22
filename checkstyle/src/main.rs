@@ -15,10 +15,9 @@ struct Args {
     regex_file_path: String,
 
     #[arg(short, long)]
-    include: Option<String>,
-
+    include: Option<Vec<String>>,
     #[arg(short, long)]
-    exclude: Option<String>,
+    exclude: Option<Vec<String>>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -27,8 +26,11 @@ fn main() -> Result<(), std::io::Error> {
     let regex_file_path = PathBuf::from(&args.regex_file_path);
     let target_path = PathBuf::from(&args.target_path);
 
+    let include_patterns = args.include;
+    let exclude_patterns = args.exclude;
+
     let nonmatching_files =
-        separate_regex_matching_files(&regex_file_path, &target_path, args.include, args.exclude);
+        separate_regex_matching_files(&regex_file_path, &target_path, include_patterns, exclude_patterns);
 
     for file in &nonmatching_files {
         println!(
@@ -98,31 +100,40 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
 fn separate_regex_matching_files(
     regex_file_path: &Path,
     target_path: &Path,
-    include_pattern: Option<String>,
-    exclude_pattern: Option<String>,
+    include_patterns: Option<Vec<String>>,
+    exclude_patterns: Option<Vec<String>>,
 ) -> Vec<PathBuf> {
     let target_file_paths = all_files(target_path);
     let regex = match read_file_content(regex_file_path) {
         Some(regex_content) => regex_content,
-        None => return Vec::new(), // Early return if regex file couldn't be read
+        None => return Vec::new(),
     };
 
-    let include_glob = match include_pattern {
-        Some(include) => glob::Pattern::new(&include).unwrap(),
-        None => glob::Pattern::new("**/*").unwrap(), // Default: match all files
-    };
-
-    let exclude_glob = match exclude_pattern {
-        Some(exclude) => glob::Pattern::new(&exclude).unwrap(),
-        None => glob::Pattern::new("").unwrap(), // Default: match no exclusions
-    };
+    let include_globs = include_patterns.unwrap_or(vec!["**/*".to_string()]);
+    let exclude_globs = exclude_patterns.unwrap_or(Vec::new());
 
     target_file_paths
         .into_iter()
         .filter(|target_file_name| {
             let file_name = target_file_name.file_name().unwrap().to_str().unwrap();
-            let include_match = include_glob.matches(file_name);
-            let exclude_match = exclude_glob.matches(file_name);
+
+            let mut include_match = false;
+            for include_glob in &include_globs {
+                let pattern = glob::Pattern::new(include_glob).unwrap();
+                if pattern.matches(file_name) {
+                    include_match = true;
+                    break;
+                }
+            }
+
+            let mut exclude_match = false;
+            for exclude_glob in &exclude_globs {
+                let pattern = glob::Pattern::new(exclude_glob).unwrap();
+                if pattern.matches(file_name) {
+                    exclude_match = true;
+                    break;
+                }
+            }
 
             if let Some(content) = read_file_content(target_file_name.as_ref()) {
                 include_match && !exclude_match && !check_matching(&content, &regex)
@@ -137,6 +148,7 @@ fn separate_regex_matching_files(
 mod tests {
     use crate::check_matching;
     use crate::read_file_content;
+    use super::*;
 
     #[test]
     fn test_checker() {
@@ -155,5 +167,17 @@ mod tests {
             }
         };
         assert!(check_matching(&file, &regex));
+    }
+
+    #[test]
+    fn test_separator() {
+        let include_patterns = vec!["*".to_string(), "*/*".to_string()];
+        let exclude_patterns = vec!["*/*.png".to_string(), "*/*.gif".to_string(), "*/*.dot".to_string()];
+        let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
+        let target_path = PathBuf::from(".".to_string());
+        let result = separate_regex_matching_files(&regex_file_path, &target_path, Some(include_patterns), Some(exclude_patterns));
+        for path in &result {
+            println!("{}", path.display());
+        }
     }
 }
