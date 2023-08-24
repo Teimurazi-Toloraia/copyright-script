@@ -151,7 +151,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_checker() {
+    fn matching() {
         let regex = match read_file_content("checkstyle-file-agpl-header.txt".as_ref()) {
             Some(content) => content,
             None => {
@@ -170,14 +170,36 @@ mod tests {
     }
 
     #[test]
-    fn test_separator() {
+    fn separator() {
         let include_patterns = vec!["*".to_string(), "*/*".to_string()];
         let exclude_patterns = vec!["*/*.png".to_string(), "*/*.gif".to_string(), "*/*.dot".to_string()];
         let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
         let target_path = PathBuf::from(".".to_string());
-        let result = separate_regex_matching_files(&regex_file_path, &target_path, Some(include_patterns), Some(exclude_patterns));
-        for path in &result {
-            println!("{}", path.display());
-        }
+        let result = separate_regex_matching_files(&
+            regex_file_path, 
+            &target_path, 
+            Some(include_patterns), 
+            Some(exclude_patterns)
+        );
+        assert!(!result.contains(&PathBuf::from("Syncer.kt")));
+    }
+
+    #[test]
+    fn inclusion_and_exclusion() {
+        let include_patterns = vec!["**/*.txt".to_string()];
+        let exclude_patterns = vec!["dir2/*".to_string()];
+        let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt");
+        let target_path = PathBuf::from("test_folder");
+
+        let result = separate_regex_matching_files(
+            &regex_file_path,
+            &target_path,
+            Some(include_patterns),
+            Some(exclude_patterns),
+        );
+
+        // assert!(result.contains(&PathBuf::from("test_folder/dir1/Syncer.kt")));
+        // assert!(result.contains(&PathBuf::from("test_folder/dir2/Syncer.kt")));
+        assert!(!result.contains(&PathBuf::from("test_folder/dir2/modifiedSyncer.kt")));
     }
 }
