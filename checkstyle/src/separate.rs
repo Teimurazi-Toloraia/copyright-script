@@ -104,7 +104,7 @@ mod tests {
     use super::*;
     use crate::separate::check_matching;
     use crate::separate::read_file_content;
-    
+
     fn regex_nonmatching_files(
         regex_file_path: &Path,
         target_path: &Path,
@@ -139,9 +139,7 @@ mod tests {
     fn separator() {
         let include_patterns = vec!["*".to_string(), "*/*".to_string()];
         let exclude_patterns = vec![
-            "*/*.png".to_string(),
-            "*/*.gif".to_string(),
-            "*/*.dot".to_string(),
+            "*/*.txt".to_string(),
         ];
         let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
         let target_path = PathBuf::from(".".to_string());
@@ -170,6 +168,7 @@ mod tests {
 
         assert!(!result.contains(&PathBuf::from("test_folder/dir1/Syncer.kt")));
         assert!(!result.contains(&PathBuf::from("test_folder/dir2/Syncer.kt")));
+        assert!(!result.contains(&PathBuf::from("test_folder/dir3/Syncer.txt")));
         assert!(result.contains(&PathBuf::from("test_folder/dir3/modifiedSyncer.kt")));
     }
 }
