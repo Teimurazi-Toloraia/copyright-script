@@ -1,4 +1,4 @@
-use glob::*;
+use glob::Pattern;
 use regex::Regex;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -53,7 +53,7 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
-fn files_matching_patterns(
+pub fn files_matching_patterns(
     target_path: &Path,
     include_patterns: Option<Vec<String>>,
     exclude_patterns: Option<Vec<String>>,
@@ -81,7 +81,7 @@ fn files_matching_patterns(
         .collect()
 }
 
-fn nonmatching_files_from_list(regex_file_path: &Path, file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
+pub fn nonmatching_files_from_list(regex_file_path: &Path, file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
     let regex = match read_file_content(regex_file_path) {
         Some(regex_content) => regex_content,
         None => return Vec::new(),
@@ -99,21 +99,22 @@ fn nonmatching_files_from_list(regex_file_path: &Path, file_paths: Vec<PathBuf>)
         .collect()
 }
 
-pub fn separate_regex_matching_files(
-    regex_file_path: &Path,
-    target_path: &Path,
-    include_patterns: Option<Vec<String>>,
-    exclude_patterns: Option<Vec<String>>,
-) -> Vec<PathBuf> {
-    let file_paths = files_matching_patterns(target_path, include_patterns, exclude_patterns);
-    nonmatching_files_from_list(regex_file_path, file_paths)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::separate::check_matching;
     use crate::separate::read_file_content;
+    
+    fn regex_nonmatching_files(
+        regex_file_path: &Path,
+        target_path: &Path,
+        include_patterns: Option<Vec<String>>,
+        exclude_patterns: Option<Vec<String>>,
+    ) -> Vec<PathBuf> {
+        let file_paths = files_matching_patterns(target_path, include_patterns, exclude_patterns);
+        nonmatching_files_from_list(regex_file_path, file_paths)
+    }
+    
 
     #[test]
     fn matching() {
@@ -144,7 +145,7 @@ mod tests {
         ];
         let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
         let target_path = PathBuf::from(".".to_string());
-        let result = separate_regex_matching_files(
+        let result = regex_nonmatching_files(
             &regex_file_path,
             &target_path,
             Some(include_patterns),
@@ -160,7 +161,7 @@ mod tests {
         let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt");
         let target_path = PathBuf::from("test_folder");
 
-        let result = separate_regex_matching_files(
+        let result = regex_nonmatching_files(
             &regex_file_path,
             &target_path,
             Some(include_patterns),

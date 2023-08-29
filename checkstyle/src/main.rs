@@ -1,8 +1,9 @@
 use clap::Parser;
 use std::path::PathBuf;
-use std::process;
 mod separate;
-use separate::separate_regex_matching_files;
+use separate::{files_matching_patterns, nonmatching_files_from_list};
+use std::io::{Error, ErrorKind};
+
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -25,15 +26,9 @@ fn main() -> Result<(), std::io::Error> {
     let regex_file_path = PathBuf::from(&args.regex_file_path);
     let target_path = PathBuf::from(&args.target_path);
 
-    let include_patterns = args.include;
-    let exclude_patterns = args.exclude;
-
-    let nonmatching_files = separate_regex_matching_files(
-        &regex_file_path,
-        &target_path,
-        include_patterns,
-        exclude_patterns,
-    );
+    let file_paths = files_matching_patterns(&target_path, args.include, args.exclude);
+    
+    let nonmatching_files = nonmatching_files_from_list(&regex_file_path, file_paths);
 
     for file in &nonmatching_files {
         println!(
@@ -44,7 +39,7 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     if !nonmatching_files.is_empty() {
-        process::exit(1);
+        return Err(Error::new(ErrorKind::Other, "oh no!"));
     }
 
     Ok(())
