@@ -1,6 +1,7 @@
+use glob::*;
 use regex::Regex;
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
 
 pub fn read_file_content(file_path: &Path) -> Option<String> {
     match fs::read_to_string(file_path) {
@@ -52,51 +53,60 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
+fn files_matching_patterns(
+    target_path: &Path,
+    include_patterns: Option<Vec<String>>,
+    exclude_patterns: Option<Vec<String>>,
+) -> Vec<PathBuf> {
+    let target_file_paths = all_files(target_path);
+    let include_globs = include_patterns.unwrap_or(vec!["**/*".to_string()]);
+    let exclude_globs = exclude_patterns.unwrap_or(Vec::new());
+    target_file_paths
+        .into_iter()
+        .filter(|target_file_name| {
+            let file_name = target_file_name.file_name().unwrap().to_str().unwrap();
+
+            let include_match = include_globs.iter().any(|include_glob| {
+                let pattern = Pattern::new(include_glob).unwrap();
+                pattern.matches(file_name)
+            });
+
+            let exclude_match = exclude_globs.iter().any(|exclude_glob| {
+                let pattern = Pattern::new(exclude_glob).unwrap();
+                pattern.matches(file_name)
+            });
+
+            include_match && !exclude_match
+        })
+        .collect()
+}
+
+fn nonmatching_files_from_list(regex_file_path: &Path, file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
+    let regex = match read_file_content(regex_file_path) {
+        Some(regex_content) => regex_content,
+        None => return Vec::new(),
+    };
+
+    file_paths
+        .into_iter()
+        .filter(|target_file_name| {
+            if let Some(content) = read_file_content(target_file_name.as_ref()) {
+                !check_matching(&content, &regex)
+            } else {
+                false
+            }
+        })
+        .collect()
+}
+
 pub fn separate_regex_matching_files(
     regex_file_path: &Path,
     target_path: &Path,
     include_patterns: Option<Vec<String>>,
     exclude_patterns: Option<Vec<String>>,
 ) -> Vec<PathBuf> {
-    let target_file_paths = all_files(target_path);
-    let regex = match read_file_content(regex_file_path) {
-        Some(regex_content) => regex_content,
-        None => return Vec::new(),
-    };
-
-    let include_globs = include_patterns.unwrap_or(vec!["**/*".to_string()]);
-    let exclude_globs = exclude_patterns.unwrap_or(Vec::new());
-
-    target_file_paths
-        .into_iter()
-        .filter(|target_file_name| {
-            let file_name = target_file_name.file_name().unwrap().to_str().unwrap();
-
-            let mut include_match = false;
-            for include_glob in &include_globs {
-                let pattern = glob::Pattern::new(include_glob).unwrap();
-                if pattern.matches(file_name) {
-                    include_match = true;
-                    break;
-                }
-            }
-
-            let mut exclude_match = false;
-            for exclude_glob in &exclude_globs {
-                let pattern = glob::Pattern::new(exclude_glob).unwrap();
-                if pattern.matches(file_name) {
-                    exclude_match = true;
-                    break;
-                }
-            }
-
-            if let Some(content) = read_file_content(target_file_name.as_ref()) {
-                include_match && !exclude_match && !check_matching(&content, &regex)
-            } else {
-                false
-            }
-        })
-        .collect()
+    let file_paths = files_matching_patterns(target_path, include_patterns, exclude_patterns);
+    nonmatching_files_from_list(regex_file_path, file_paths)
 }
 
 #[cfg(test)]
