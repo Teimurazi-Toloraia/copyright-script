@@ -29,7 +29,7 @@ fn all_files(folder_path: &Path) -> Vec<PathBuf> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
-pub fn files_matching_patterns(
+pub fn matching_files(
     target_path: &Path,
     include_patterns: Option<Vec<String>>,
     exclude_patterns: Option<Vec<String>>,

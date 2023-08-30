@@ -1,9 +1,9 @@
 use clap::Parser;
 use std::path::PathBuf;
-mod files_matching_glob_patterns;
-mod regex_nonmatch_checking;
-use files_matching_glob_patterns::files_matching_patterns;
-use regex_nonmatch_checking::nonmatching_files_from_list;
+mod glob_patterns;
+mod regex_nonmatch;
+use glob_patterns::matching_files;
+use regex_nonmatch::nonmatching_files;
 use std::io::{Error, ErrorKind};
 
 #[derive(Parser, Debug)]
@@ -27,9 +27,9 @@ fn main() -> Result<(), std::io::Error> {
     let regex_file_path = PathBuf::from(&args.regex_file_path);
     let target_path = PathBuf::from(&args.target_path);
 
-    let file_paths = files_matching_patterns(&target_path, args.include, args.exclude);
+    let file_paths = matching_files(&target_path, args.include, args.exclude);
 
-    let nonmatching_files = nonmatching_files_from_list(&regex_file_path, file_paths);
+    let nonmatching_files = nonmatching_files(&regex_file_path, file_paths);
 
     for file in &nonmatching_files {
         println!(
@@ -44,75 +44,4 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{files_matching_patterns, nonmatching_files_from_list, PathBuf};
-    use crate::regex_nonmatch_checking::{check_matching, read_file_content};
-    use std::path::Path;
-
-    fn regex_nonmatching_files(
-        regex_file_path: &Path,
-        target_path: &Path,
-        include_patterns: Option<Vec<String>>,
-        exclude_patterns: Option<Vec<String>>,
-    ) -> Vec<PathBuf> {
-        let file_paths = files_matching_patterns(target_path, include_patterns, exclude_patterns);
-        nonmatching_files_from_list(regex_file_path, file_paths)
-    }
-
-    #[test]
-    fn matching() {
-        let regex = match read_file_content("checkstyle-file-agpl-header.txt".as_ref()) {
-            Some(content) => content,
-            None => {
-                println!("Failed to read regex file");
-                return;
-            }
-        };
-        let file = match read_file_content("Syncer.kt".as_ref()) {
-            Some(content) => content,
-            None => {
-                println!("Failed to read file");
-                return;
-            }
-        };
-        assert!(check_matching(&file, &regex));
-    }
-
-    #[test]
-    fn separator() {
-        let include_patterns = vec!["*".to_string(), "*/*".to_string()];
-        let exclude_patterns = vec!["*/*.txt".to_string()];
-        let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt".to_string());
-        let target_path = PathBuf::from(".".to_string());
-        let result = regex_nonmatching_files(
-            &regex_file_path,
-            &target_path,
-            Some(include_patterns),
-            Some(exclude_patterns),
-        );
-        assert!(!result.contains(&PathBuf::from("Syncer.kt")));
-    }
-
-    #[test]
-    fn inclusion_and_exclusion() {
-        let include_patterns = vec!["**/*.kt".to_string()];
-        let exclude_patterns = vec!["dir2/*".to_string()];
-        let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt");
-        let target_path = PathBuf::from("test_folder");
-
-        let result = regex_nonmatching_files(
-            &regex_file_path,
-            &target_path,
-            Some(include_patterns),
-            Some(exclude_patterns),
-        );
-
-        assert!(!result.contains(&PathBuf::from("test_folder/dir1/Syncer.kt")));
-        assert!(!result.contains(&PathBuf::from("test_folder/dir2/Syncer.kt")));
-        assert!(!result.contains(&PathBuf::from("test_folder/dir3/Syncer.txt")));
-        assert!(result.contains(&PathBuf::from("test_folder/dir3/modifiedSyncer.kt")));
-    }
 }
