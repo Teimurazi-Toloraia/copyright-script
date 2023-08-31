@@ -39,15 +39,15 @@ pub fn matching_files(
     let exclude_globs = exclude_patterns.unwrap_or(Vec::new());
     target_file_paths
         .into_iter()
-        .filter(|target_file_name| {
+        .filter(|target_file_path| {
             let include_match = include_globs.iter().any(|include_glob| {
                 let pattern = Pattern::new(include_glob).unwrap();
-                pattern.matches_path(&target_file_name)
+                pattern.matches_path(&target_file_path)
             });
 
             let exclude_match = exclude_globs.iter().any(|exclude_glob| {
                 let pattern = Pattern::new(exclude_glob).unwrap();
-                pattern.matches_path(&target_file_name)
+                pattern.matches_path(&target_file_path)
             });
 
             include_match && !exclude_match
