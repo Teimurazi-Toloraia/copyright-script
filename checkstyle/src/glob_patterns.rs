@@ -57,20 +57,16 @@ pub fn matching_files(
 
 #[cfg(test)]
 mod tests {
-    use super::PathBuf;    
+    use super::PathBuf;
     use crate::glob_patterns::matching_files;
 
     #[test]
     fn inclusion_and_exclusion() {
         let include_patterns = vec!["**/*.kt".to_string(), "**/*.txt".to_string()];
-        let exclude_patterns = vec!["dir2/*".to_string()];
+        let exclude_patterns = vec!["test_folder/dir2/*".to_string()];
         let target_path = PathBuf::from("test_folder");
 
-        let result = matching_files(
-            &target_path,
-            Some(include_patterns),
-            Some(exclude_patterns),
-        );
+        let result = matching_files(&target_path, Some(include_patterns), Some(exclude_patterns));
 
         assert!(result.contains(&PathBuf::from("test_folder/dir1/Syncer.kt")));
         assert!(result.contains(&PathBuf::from("test_folder/dir3/Syncer.txt")));

@@ -25,10 +25,7 @@ pub fn check_matching(file: &str, regex: &str) -> bool {
     re.is_match(file)
 }
 
-pub fn nonmatching_files(
-    regex_file_path: &Path,
-    file_paths: Vec<PathBuf>,
-) -> Vec<PathBuf> {
+pub fn nonmatching_files(regex_file_path: &Path, file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
     let regex = match read_file_content(regex_file_path) {
         Some(regex_content) => regex_content,
         None => return Vec::new(),
@@ -48,9 +45,9 @@ pub fn nonmatching_files(
 
 #[cfg(test)]
 mod tests {
-    use super::PathBuf;    
+    use super::PathBuf;
     use crate::glob_patterns::matching_files;
-    use crate::regex_nonmatch::{check_matching, read_file_content, nonmatching_files};
+    use crate::regex_nonmatch::{check_matching, nonmatching_files, read_file_content};
     use std::path::Path;
 
     fn regex_nonmatching_files(
@@ -100,7 +97,7 @@ mod tests {
     #[test]
     fn inclusion_and_exclusion() {
         let include_patterns = vec!["**/*.kt".to_string()];
-        let exclude_patterns = vec!["dir2/*".to_string()];
+        let exclude_patterns = vec!["test_folder/dir2/*".to_string()];
         let regex_file_path = PathBuf::from("checkstyle-file-agpl-header.txt");
         let target_path = PathBuf::from("test_folder");
 
