@@ -40,16 +40,14 @@ pub fn matching_files(
     target_file_paths
         .into_iter()
         .filter(|target_file_name| {
-            let file_name = target_file_name.file_name().unwrap().to_str().unwrap();
-
             let include_match = include_globs.iter().any(|include_glob| {
                 let pattern = Pattern::new(include_glob).unwrap();
-                pattern.matches(file_name)
+                pattern.matches_path(&target_file_name)
             });
 
             let exclude_match = exclude_globs.iter().any(|exclude_glob| {
                 let pattern = Pattern::new(exclude_glob).unwrap();
-                pattern.matches(file_name)
+                pattern.matches_path(&target_file_name)
             });
 
             include_match && !exclude_match
