@@ -115,5 +115,6 @@ mod tests {
         assert!(!result.contains(&PathBuf::from("test_folder/dir2/Syncer.kt")));
         assert!(!result.contains(&PathBuf::from("test_folder/dir3/Syncer.txt")));
         assert!(result.contains(&PathBuf::from("test_folder/dir3/modifiedSyncer.kt")));
+        assert!(!result.contains(&PathBuf::from("test_folder/dir2/modifiedSyncer.kt")));
     }
 }
