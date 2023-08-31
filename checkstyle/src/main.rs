@@ -33,7 +33,7 @@ fn main() -> Result<(), std::io::Error> {
 
     let nonmatching_files = nonmatching_files(&regex_file_path, file_paths.clone());
 
-    let end_empty_line = !no_empty_line(file_paths.clone()).is_empty();
+    let end_empty_line = no_empty_line(file_paths.clone());
 
     for file in &nonmatching_files {
         println!(
@@ -43,7 +43,14 @@ fn main() -> Result<(), std::io::Error> {
         );
     }
 
-    if !nonmatching_files.is_empty() || !end_empty_line {
+    for file in &end_empty_line {
+        println!(
+            "File {} does not end with an empty line",
+            file.display()
+        );
+    }
+
+    if !nonmatching_files.is_empty() || !end_empty_line.is_empty() {
         return Err(Error::new(ErrorKind::Other, "oh no!"));
     }
 

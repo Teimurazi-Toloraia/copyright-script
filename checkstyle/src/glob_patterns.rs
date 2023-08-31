@@ -25,7 +25,7 @@ fn list_files_in_folder(folder_path: &Path) -> Result<Vec<PathBuf>, std::io::Err
     Ok(file_paths)
 }
 
-fn all_files(folder_path: &Path) -> Vec<PathBuf> {
+pub fn all_files(folder_path: &Path) -> Vec<PathBuf> {
     list_files_in_folder(folder_path).unwrap_or_default()
 }
 
