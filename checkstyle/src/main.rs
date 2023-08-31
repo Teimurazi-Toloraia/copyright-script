@@ -2,8 +2,10 @@ use clap::Parser;
 use std::path::PathBuf;
 mod glob_patterns;
 mod regex_nonmatch;
+mod empty_line;
 use glob_patterns::matching_files;
 use regex_nonmatch::nonmatching_files;
+use empty_line::no_empty_line;
 use std::io::{Error, ErrorKind};
 
 #[derive(Parser, Debug)]
@@ -29,7 +31,9 @@ fn main() -> Result<(), std::io::Error> {
 
     let file_paths = matching_files(&target_path, args.include, args.exclude);
 
-    let nonmatching_files = nonmatching_files(&regex_file_path, file_paths);
+    let nonmatching_files = nonmatching_files(&regex_file_path, file_paths.clone());
+
+    let end_empty_line = !no_empty_line(file_paths.clone()).is_empty();
 
     for file in &nonmatching_files {
         println!(
@@ -39,7 +43,7 @@ fn main() -> Result<(), std::io::Error> {
         );
     }
 
-    if !nonmatching_files.is_empty() {
+    if !nonmatching_files.is_empty() || !end_empty_line {
         return Err(Error::new(ErrorKind::Other, "oh no!"));
     }
 
