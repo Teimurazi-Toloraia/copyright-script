@@ -3,6 +3,7 @@ use std::path::PathBuf;
 mod empty_line;
 mod glob_patterns;
 mod regex_nonmatch;
+mod utils;
 use empty_line::no_empty_line;
 use glob_patterns::matching_files;
 use regex_nonmatch::nonmatching_files;
@@ -30,11 +31,7 @@ fn main() -> Result<(), std::io::Error> {
     let target_path = PathBuf::from(&args.target_path);
 
     let file_paths = matching_files(&target_path, args.include, args.exclude);
-
     let nonmatching_files = nonmatching_files(&regex_file_path, file_paths.clone());
-
-    let end_empty_line = no_empty_line(file_paths.clone());
-
     for file in &nonmatching_files {
         println!(
             "File {} does not match regex: {}",
@@ -43,11 +40,12 @@ fn main() -> Result<(), std::io::Error> {
         );
     }
 
-    for file in &end_empty_line {
+    let not_end_empty_line = no_empty_line(file_paths.clone());
+    for file in &not_end_empty_line {
         println!("File {} does not end with an empty line", file.display());
     }
 
-    if !nonmatching_files.is_empty() || !end_empty_line.is_empty() {
+    if !nonmatching_files.is_empty() || !not_end_empty_line.is_empty() {
         return Err(Error::new(ErrorKind::Other, "oh no!"));
     }
 

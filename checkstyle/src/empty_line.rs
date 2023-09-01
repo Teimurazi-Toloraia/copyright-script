@@ -21,7 +21,7 @@ pub fn no_empty_line(file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::PathBuf;
-    use crate::{empty_line::no_empty_line, glob_patterns::all_files};
+    use crate::{empty_line::no_empty_line, utils::all_files};
 
     #[test]
     fn empty_line() {
