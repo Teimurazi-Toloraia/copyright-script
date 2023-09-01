@@ -1,26 +1,30 @@
-use std::path::{Path, PathBuf};
 use crate::regex_nonmatch::read_file_content;
+use std::path::{Path, PathBuf};
 
 fn ends_with_empty_line(file_path: &Path) -> bool {
     let file_content: String = read_file_content(file_path).unwrap();
-    let lines: Vec<&str> = file_content.lines().collect();
 
-    lines.last().is_some_and(|l| l.trim().is_empty())
+    if file_content.is_empty() {
+        return false;
+    }
+
+    let last_char = file_content.chars().last().unwrap();
+
+    // Check if the last character is a newline character ('\n')
+    last_char == '\n'
 }
 
 pub fn no_empty_line(file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
     file_paths
         .into_iter()
-        .filter(|file_path| {
-            !ends_with_empty_line(file_path)
-        })
+        .filter(|file_path| !ends_with_empty_line(file_path))
         .collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::PathBuf;
-    use crate::{glob_patterns::all_files, empty_line::no_empty_line};
+    use crate::{empty_line::no_empty_line, glob_patterns::all_files};
 
     #[test]
     fn empty_line() {

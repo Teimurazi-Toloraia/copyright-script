@@ -1,11 +1,11 @@
 use clap::Parser;
 use std::path::PathBuf;
+mod empty_line;
 mod glob_patterns;
 mod regex_nonmatch;
-mod empty_line;
+use empty_line::no_empty_line;
 use glob_patterns::matching_files;
 use regex_nonmatch::nonmatching_files;
-use empty_line::no_empty_line;
 use std::io::{Error, ErrorKind};
 
 #[derive(Parser, Debug)]
@@ -44,10 +44,7 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     for file in &end_empty_line {
-        println!(
-            "File {} does not end with an empty line",
-            file.display()
-        );
+        println!("File {} does not end with an empty line", file.display());
     }
 
     if !nonmatching_files.is_empty() || !end_empty_line.is_empty() {
