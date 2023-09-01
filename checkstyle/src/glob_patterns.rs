@@ -1,6 +1,6 @@
+use crate::utils::all_files;
 use glob::Pattern;
 use std::path::{Path, PathBuf};
-use crate::utils::all_files;
 
 pub fn matching_files(
     target_path: &Path,
