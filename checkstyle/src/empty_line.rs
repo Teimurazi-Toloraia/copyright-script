@@ -8,7 +8,7 @@ fn ends_with_empty_line(file_path: &Path) -> bool {
         return false;
     }
 
-    file_content.chars().last().unwrap().eq(&'\n')
+    file_content.ends_with('\n') && !file_content.ends_with("\r\n")
 }
 
 pub fn no_empty_line(file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
