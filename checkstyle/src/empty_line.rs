@@ -8,10 +8,7 @@ fn ends_with_empty_line(file_path: &Path) -> bool {
         return false;
     }
 
-    let last_char = file_content.chars().last().unwrap();
-
-    // Check if the last character is a newline character ('\n')
-    last_char == '\n'
+    file_content.chars().last().unwrap().eq(&'\n')
 }
 
 pub fn no_empty_line(file_paths: Vec<PathBuf>) -> Vec<PathBuf> {
